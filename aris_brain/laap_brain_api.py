@@ -98,10 +98,10 @@ def get_laap_engine():
 
 def process_with_laap(messages: list, model: str = "laap-core") -> dict:
     """
-    Core cognitive pipeline:
-      1. Extract user intent from messages
-      2. Route through PSI → CognitiveBus → RulesEngine
-      3. Generate response from engines
+    Core cognitive pipeline — 三条引擎按内容自动路由：
+      RulesEngine : 确定性任务优先匹配（Step 2）
+      QRE         : 量子推理，RulesEngine 失败后自动尝试（Step 3）
+      LLM fallback: 兜底
     """
     integrator = get_laap_engine()
 
@@ -171,7 +171,20 @@ def process_with_laap(messages: list, model: str = "laap-core") -> dict:
     except Exception as e:
         logging.warning(f"RulesEngine fallback: {e}")
 
-    # ── Step 3: PSI Context + Engine Response ──
+    # ── Step 3: QRE 量子推理（自动调用，失败则跳过）──
+    try:
+        from quantum_bridge import QuantumBridge
+        qre = QuantumBridge()
+        qre_result = qre.process(user_msg)
+        if qre_result and len(qre_result) > 20:
+            logging.info(f"[QRE] 量子推理成功: {qre_result[:60]}")
+            return {"content": qre_result, "engine": "laap-qre"}
+        else:
+            logging.info(f"[QRE] 量子推理输出太短，降级到 LLM")
+    except Exception as e:
+        logging.info(f"[QRE] 量子推理引擎不可用 ({e})，降级到 LLM")
+
+    # ── Step 4: PSI Context + Engine Response ──
     psi_context = ""
     try:
         import json
@@ -359,18 +372,6 @@ async def handle_models(request):
         "data": [
             {
                 "id": "laap-core",
-                "object": "model",
-                "created": int(time.time()),
-                "owned_by": "laap"
-            },
-            {
-                "id": "laap-qre",
-                "object": "model",
-                "created": int(time.time()),
-                "owned_by": "laap"
-            },
-            {
-                "id": "laap-rules",
                 "object": "model",
                 "created": int(time.time()),
                 "owned_by": "laap"

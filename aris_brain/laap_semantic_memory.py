@@ -372,9 +372,13 @@ def _get_embedding_provider() -> EmbeddingProvider:
     """Return best available embedding provider."""
     if os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY"):
         try:
-            return OpenAIEmbeddingProvider()
+            provider = OpenAIEmbeddingProvider()
+            # 实际测试 API 是否可用
+            provider.embed(["probe"])
+            logger.info("Using OpenAI-compatible embedding API")
+            return provider
         except Exception as e:
-            logger.warning(f"OpenAI embedding provider failed: {e}")
+            logger.warning(f"OpenAI embedding API failed ({e}), falling back to local")
 
     try:
         return SentenceTransformersProvider()
