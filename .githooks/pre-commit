@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+# LAAP pre-commit hook — 敏感信息扫描
+# 在每次 git commit 前自动检查即将提交的文件，发现敏感信息即阻止提交
+#
+
+set -e
+
+# === 敏感信息正则模式 ===
+# 每个模式是一行，格式: REGEX|REPLACEMENT_COMMENT
+# 用换行分隔，不用 bash 数组
+
+PATTERN_FILE=$(mktemp)
+cat << 'EOF' > "$PATTERN_FILE"
+sk-[A-Za-z0-9]{20,}|# API_KEY_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+ghp_[A-Za-z0-9]{30,}|# GH_TOKEN_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+gho_[A-Za-z0-9]{30,}|# GH_TOKEN_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+glpat-[A-Za-z0-9]{20,}|# GL_TOKEN_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+xox[barsp]-[A-Za-z0-9]{20,}|# SLACK_TOKEN_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+api[_-]?key[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]|# API_KEY_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+secret[_-]?key[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]|# SECRET_KEY_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+password[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]|# PASSWORD_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+token[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]|# TOKEN_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+bearer [A-Za-z0-9_\-]{20,}|# BEARER_TOKEN_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+password[[:space:]]*[:=][[:space:]]*['\"][^'\"]{5,}['\"]|# PASSWORD_REMOVED: 请从环境变量读取, 不要硬编码在代码中
+BEGIN (RSA |EC |DSA )?PRIVATE KEY|-----BEGIN [REDACTED] PRIVATE KEY-----
+EOF
+
+# === 清理临时文件 ===
+trap "rm -f $PATTERN_FILE" EXIT
+
+echo "🔍 扫描敏感信息..."
+
+# 获取所有 staged 的文件
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$staged_files" ]; then
+  echo "  ✓ 无 staged 文件，跳过"
+  exit 0
+fi
+
+found_issues=0
+for file in $staged_files; do
+  # 跳过二进制文件
+  if file "$file" 2>/dev/null | grep -q "binary\|data"; then
+    continue
+  fi
+  # 跳过已知的安全文件类型
+  case "$file" in
+    *.png|*.jpg|*.gif|*.jpeg|*.ico|*.svg|*.woff|*.woff2|*.ttf|*.eot|*.map)
+      continue
+      ;;
+  esac
+  # 拒绝 .env 文件（它们本来就不该提交）
+  if [ "$(basename "$file")" = ".env" ] || [ "$(basename "$file")" = ".env.local" ]; then
+    echo ""
+    echo "  ⚠️  拒绝提交: $file (环境变量文件不应提交)"
+    found_issues=1
+    continue
+  fi
+
+  # 扫描该文件
+  while IFS='|' read -r pattern replacement; do
+    if grep -qE "$pattern" "$file" 2>/dev/null; then
+      echo ""
+      echo "  ❌ 发现敏感信息: $file"
+      grep -nE "$pattern" "$file" 2>/dev/null | head -5 | while read -r line; do
+        lineno=$(echo "$line" | cut -d: -f1)
+        content=$(echo "$line" | cut -d: -f2- | head -c 80)
+        echo "    行 $lineno: $content..."
+      done
+      found_issues=1
+      break
+    fi
+  done < "$PATTERN_FILE"
+done
+
+if [ $found_issues -eq 1 ]; then
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║  ❌  敏感信息检测失败                                      ║"
+  echo "╠══════════════════════════════════════════════════════════════╣"
+  echo "║  以上文件中包含敏感信息，请修改后重新提交。                ║"
+  echo "║  修改建议：                                                  ║"
+  echo "║  1. 将敏感值移到 .env 文件，从 os.environ 读取              ║"
+  echo "║  2. 使用占位符如 os.environ.get('MY_API_KEY', '')          ║"
+  echo "║  3. 不要将 .env 文件提交到仓库                              ║"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "  要强制跳过此检查：git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+echo "  ✓ 敏感信息检查通过"
+exit 0

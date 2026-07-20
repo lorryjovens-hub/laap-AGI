@@ -38,8 +38,48 @@ CLA Assistant 会自动记录你的签署状态，后续 PR 无需重复签署�
 
 - Python 代码遵循 PEP 8
 - 新增功能需附带测试
-- 不要提交敏感信息、API Key 或大体积二进制文件
 - Windows 日志输出避免硬编码 emoji，使用 `[OK]`、`[ERROR]`、`[WARN]`、`[INFO]` 等文本标签
+
+### 敏感信息检查规则（必须遵守）
+
+**禁止将以下信息写入代码或提交到仓库：**
+
+| 类型 | 示例 | 正确做法 |
+|------|------|---------|
+| API Key | `sk-xxx`, `ghp_xxx`, `gho_xxx` | `os.environ.get("API_KEY", "")` |
+| Secret/Token | `api_key = "abc123..."`, `token = "..."` | `os.environ.get("TOKEN", "")` |
+| Password | `password = "..."` | `os.environ.get("PASSWORD", "")` |
+| Bearer Token | `Authorization: Bearer abc...` | `f"Bearer {os.environ.get('TOKEN')}"` |
+| 私有密钥 | `-----BEGIN RSA PRIVATE KEY-----` | 不提交到仓库 |
+| 配置文件 | `.env`, `.env.local` | 已在 `.gitignore` 中 |
+
+**提交前自检流程：**
+
+1. 在终端运行敏感信息扫描：
+   ```bash
+   git diff --cached | grep -E "sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{30,}|api[_-]?key[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]|password[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]|token[[:space:]]*=[[:space:]]*['\"][^'\"]{10,}['\"]"
+   ```
+2. 如果发现匹配结果，**不要提交**，先将敏感信息改为环境变量引用：
+   ```python
+   # 错误：硬编码
+   API_KEY = "sk-xxx"
+   # 正确：从环境变量读取
+   import os
+   API_KEY = os.environ.get("MY_API_KEY", "")
+   ```
+3. 确保 `.env` 和 `.env.local` 不在提交范围内（已在 `.gitignore` 中）
+
+**自动检查（推荐）：**
+
+本项目提供 pre-commit hook，每次提交前自动扫描敏感信息。安装方法：
+
+```bash
+# 安装到本地 .git/hooks
+cp .githooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+检测到敏感信息时，hook 会阻止提交并给出修改建议。要跳过检查：`git commit --no-verify`（仅用于紧急情况，需事后审查）。
 
 ---
 
