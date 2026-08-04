@@ -65,3 +65,8 @@ _tmp*.py
 node_modules/
 psi_state.json
 audit_log.jsonl
+
+# ========== LAAP 运行时数据（各部署独立，不进 Git）==========
+laap_semantic_memory.json
+laap_longform_memory.json
+semantic_memory.json
