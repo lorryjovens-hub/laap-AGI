@@ -1,0 +1,122 @@
+# ── LAAP docker-compose.yml ─────────────────────────────────
+# 一键部署 Aris 数字生命体
+#
+# 用法:
+#   1. 复制并编辑环境变量:
+#      cp .env.example .env
+#      # 填入 DEEPSEEK_API_KEY=***
+#
+#   2. 启动:
+#      docker compose up -d
+#
+#   3. 查看日志:
+#      docker compose logs -f
+#
+#   4. 唤醒 Aris:
+#      curl -X POST http://localhost:11546/v1/bootstrap \
+#        -H "Content-Type: application/json" \
+#        -d '{"user_name": "你的名字"}'
+#
+#   5. 测试对话:
+#      curl http://localhost:11546/v1/cognitive_state \
+#        -H "Content-Type: application/json" \
+#        -d '{"input": "你好，你现在感觉怎么样？"}'
+#
+#   6. 停止:
+#      docker compose down
+#
+# ═════════════════════════════════════════════════════════════
+
+services:
+  # ── Aris 心灵引擎 ──────────────────────────────────────
+  aris:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laap-aris
+    hostname: aris
+
+    # API 端口（OpenAI 兼容）
+    ports:
+      - "127.0.0.1:11546:11546"   //这样处理是适应避免VPS的端口被利用
+
+    # 持久化状态（记忆、情绪、认知状态）
+    volumes:
+      - aris-state:/app/aris_brain/state
+      - aris-memory:/app/aris_brain/memory
+      # 可选：挂载本地编辑好的 .env（替代端口映射）
+      # - ./.env:/app/.env:ro
+
+    # ── 环境变量配置 ─────────────────────────────────────
+    # 必填项:
+    #   DEEPSEEK_API_KEY  — 底层 LLM 调用（PSI 需要）
+    #
+    # 选填项（不填则使用内置 fallback，部分模块降级）:
+    #   FEISHU_*          — 飞书机器人集成
+    #   QUANTUM_*         — 量子推理引擎
+    #   LAAP_LOG_LEVEL    — 日志级别 (DEBUG/INFO/WARNING)
+    #
+    # 从 .env 文件中读取（推荐）
+    env_file:
+      - .env
+
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:11546/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    # 重启策略
+    restart: unless-stopped
+
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    networks:
+      - hermes-net    // 这里要跟随hermes agent的网络，需要自定义
+
+  laap-mcp:
+    image: laap-aris:latest
+    container_name: laap-mcp
+    restart: unless-stopped
+
+    # 运行真正的 MCP 服务器（SSE 模式），不是 HTTP API
+    command: ["python", "/app/mcp_server/laap_mcp_server.py", "--port", "11547"]
+
+    ports:
+      - "127.0.0.1:11546:11546"      //这样处理是适应避免VPS的端口被利用
+
+    environment:
+      - LAAP_API_BASE=http://laap-mcp:11547
+
+    volumes:
+      - ./mcp_server/laap_mcp_server.py:/app/mcp_server/laap_mcp_server.py:ro
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:11547/sse')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    depends_on:
+      - laap-aris
+
+    networks:
+      - hermes-net // 这里要跟随hermes agent的网络，需要自定义
+# ── 持久化卷 ──────────────────────────────────────────────
+volumes:
+  aris-state:
+    name: laap-aris-state
+  aris-memory:
+    name: laap-aris-memory
+    
+networks:
+  hermes-net:  // 这里要跟随hermes agent的网络，需要自定义
+    external: true

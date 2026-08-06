@@ -1,6 +1,4 @@
-import sys
-sys.path.insert(0, r'D:\laap-AGI\aris_brain')
-from aris_rules_engine import get_engine
+from aris_brain.aris_rules_engine import get_engine
 
 e = get_engine()
 print('Tools:', e.tools.list())
@@ -10,7 +8,7 @@ print()
 tests = [
     '记住我喜欢喝燕麦拿铁',
     '帮我规划一个学习Python的计划',
-    '分析项目 D:\\laap-AGI',
+    '分析项目 /path/to/your/project',
     '总结文件 laap_brain_api.py',
     '今天天气怎么样',
     '我想你了',

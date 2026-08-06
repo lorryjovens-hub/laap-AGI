@@ -18,7 +18,7 @@ GOVERNOR_DIR = os.path.dirname(os.path.abspath(__file__))
 BRIDGE_DIR = os.path.join(GOVERNOR_DIR, "..")
 sys.path.insert(0, GOVERNOR_DIR)
 
-from governor_core import PSIGovernor
+from aris_brain.psi_jspace_bridge.governor.governor_core import PSIGovernor
 
 # 加载 Governor
 gov = PSIGovernor()
