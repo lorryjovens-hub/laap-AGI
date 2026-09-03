@@ -1,0 +1,10 @@
+# ── LAAP docker-compose override ────────────────────────────
+# 覆盖原版 build 配置，使用自定义 Dockerfile.laap
+# 此文件已加入 .gitignore，git pull 不会覆盖
+# ═════════════════════════════════════════════════════════════
+
+services:
+  aris:
+    build:
+      context: .
+      dockerfile: Dockerfile.laap

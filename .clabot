@@ -1,0 +1,8 @@
+{
+  "contributors": [
+    "lorryjovens"
+  ],
+  "message": "Thank you for your pull request! Before we can review it, please confirm that you have read and agree to the [LAAP Contributor License Agreement (CLA)](./CLA.md) by commenting on this PR with:\n\n```\nI have read and agree to the LAAP CLA.\n```\n\n请在 PR 中评论以下语句，以确认您已阅读并同意 [LAAP 贡献者许可协议 (CLA)](./CLA.md)：\n\n```\nI have read and agree to the LAAP CLA.\n```",
+  "label": "cla-signed",
+  "recheckComment": "CLA status rechecked."
+}
