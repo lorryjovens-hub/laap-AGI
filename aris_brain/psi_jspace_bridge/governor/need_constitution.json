@@ -96,7 +96,7 @@
     "safety_mode_threshold": 0.25,
     "freeze_threshold": 0.35,
     "rollback_threshold": 0.5,
-    "emergency_contact": "Lorry (feishu DM)"
+    "emergency_contact": "Lorry"
   },
 
   "audit": {

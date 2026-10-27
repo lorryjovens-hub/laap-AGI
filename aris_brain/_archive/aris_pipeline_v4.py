@@ -3,7 +3,7 @@ Aris 小智 Pipeline v4 — 最小稳定版
 """
 import socket, struct, json, os, threading, subprocess, sys, time
 
-LOCAL_IP = "192.168.137.1"
+LOCAL_IP = "192.168.x.x"
 REDIRECT = ["mqtt.xiaozhi.me", "api.xiaozhi.me", "api.tenclass.net", "tenclass.net"]
 UP_DNS = "114.114.114.114"
 
@@ -56,7 +56,7 @@ def dns_thread():
             hit = any(dom == d or dom.endswith('.' + d) for d in REDIRECT)
             if hit:
                 s.sendto(reply(data, LOCAL_IP), addr)
-                if addr[0] == "192.168.137.200":
+                if addr[0] == "192.168.x.x":
                     dns_hits.append(dom)
                     log(f"[DNS⚡] 小智查询: {dom} → {LOCAL_IP}")
             else:
@@ -88,7 +88,7 @@ def mqtt_thread():
     def handle(c, addr):
         conns[0] += 1
         cid = conns[0]
-        esp = addr[0] == "192.168.137.200"
+        esp = addr[0] == "192.168.x.x"
         if esp: log(f"\n[MQTT⚡#{cid}] 小智连接! {addr}")
         else: log(f"[MQTT #{cid}] {addr}")
         

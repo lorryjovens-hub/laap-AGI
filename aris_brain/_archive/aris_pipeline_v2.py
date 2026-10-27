@@ -13,7 +13,7 @@ import threading
 import subprocess
 
 # ── 配置 ──
-LOCAL_IP = "192.168.137.1"
+LOCAL_IP = "192.168.x.x"
 REDIRECT_DOMAINS = ["mqtt.xiaozhi.me", "api.xiaozhi.me", "api.tenclass.net", "tenclass.net"]
 UPSTREAM_DNS = "114.114.114.114"
 LOCAL_MQTT_HOST = "127.0.0.1"

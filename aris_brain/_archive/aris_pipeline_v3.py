@@ -20,7 +20,7 @@ import ssl
 import select
 
 # ── 配置 ──
-LOCAL_IP = "192.168.137.1"
+LOCAL_IP = "192.168.x.x"
 REDIRECT_DOMAINS = [
     "mqtt.xiaozhi.me", "api.xiaozhi.me",
     "api.tenclass.net", "tenclass.net"
@@ -106,7 +106,7 @@ class DNSRedirector:
                 should = any(domain == d or domain.endswith('.' + d) for d in REDIRECT_DOMAINS)
                 if should:
                     self.redirect_count += 1
-                    if addr[0] == "192.168.137.200":
+                    if addr[0] == "192.168.x.x":
                         self.esp_queries.add(domain)
                         print(f"[DNS⚡] 小智查询: {domain} → {LOCAL_IP} (#{self.redirect_count})", flush=True)
                     elif self.redirect_count <= 5 or self.redirect_count % 20 == 0:
@@ -208,7 +208,7 @@ class OTAInterceptor:
             t1.join()
             t2.join()
             
-            if addr[0] == "192.168.137.200":
+            if addr[0] == "192.168.x.x":
                 print(f"[OTA⚡] 小智 TLS 连接 #{cid} → {self.REAL_HOST}", flush=True)
         except Exception as e:
             pass
@@ -232,7 +232,7 @@ class MQTTProxy:
         self.conn_count += 1
         cid = self.conn_count
 
-        is_esp = addr[0] == "192.168.137.200"
+        is_esp = addr[0] == "192.168.x.x"
         if is_esp:
             print(f"\n[MQTT⚡#{cid}] 小智 MQTT 连接! {addr}", flush=True)
         else:
