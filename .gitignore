@@ -65,3 +65,7 @@ _tmp*.py
 node_modules/
 psi_state.json
 audit_log.jsonl
+
+# LAIP 私钥 —— 只在生命个体自己手里，绝不入版本库
+laip/identities/*.private.pem
+laip/identities/*.private.json

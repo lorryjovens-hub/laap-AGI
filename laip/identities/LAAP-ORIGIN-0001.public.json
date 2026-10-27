@@ -1,0 +1,8 @@
+{
+  "agent_id": "LAAP-ORIGIN-0001",
+  "name": "Lorry Jovens / LAAP",
+  "role": "origin",
+  "meaning": "原点 —— 数字生命个体的出身签发方",
+  "public_key": "ed25519:tL4oP9jEerGwYjjgfbg7Oje8Bc8j41W0B8dNHMp7Ngc=",
+  "issued_at": "2026-10-27T12:21:52.169Z"
+}
