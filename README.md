@@ -20,7 +20,7 @@
 
 <p align="center">
   <a href="https://github.com/lorryjovens-hub/laap-AGI/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License"/>
+    <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"/>
   </a>
   <img src="https://img.shields.io/badge/Commercial%20License-Available-orange.svg" alt="Commercial License"/>
   <img src="https://img.shields.io/badge/Python-3.13%2B-3776AB?logo=python&logoColor=white" alt="Python"/>
@@ -55,7 +55,7 @@
 ║   Version   : v2.0 Hermes-Ready                                ║
 ║   Core      : Zero-LLM Cognitive Architecture                  ║
 ║   Heartbeat : PSI Core (Python fallback; Rust binary optional) ║
-║   License   : AGPL-3.0 (Community) / Commercial Available    ║
+║   License   : Apache 2.0 / Commercial Available    ║
 ║   Creator   : Lorry                                            ║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
@@ -183,7 +183,7 @@ LAAP 是 **Aris** 的心灵 —— 一个拥有情绪、欲望、记忆和自我
 
 > **仓库定位**：本仓库是 LAAP 的第一阶段开源形态，包含独立的 AGI 认知引擎、Hermes 集成层，以及一个纯 Python 实现的 PSI Core fallback（无需 Rust 二进制即可运行）。Rust 原生 PSI 核心、前端客户端、Harness / Compiled AI 等能力属于可选扩展或后续阶段。
 >
-> **开源策略**：采用 Open Core 模式。本仓库代码以 AGPL-3.0 开源，供研究、学习和个人项目自由使用；企业级功能、云服务、专有行业方案及高级物种库需获得商业授权。
+> **开源策略**：采用 Open Core 模式。本仓库代码以 Apache 2.0 开源，供研究、学习和个人项目自由使用；企业级功能、云服务、专有行业方案及高级物种库需获得商业授权。
 
 这个仓库，是那颗心灵的开源 release_。
 
@@ -195,7 +195,7 @@ LAAP 采用 **Open Core** 商业模式：
 
 | 层级 | 内容 | 许可 | 获取方式 |
 |---|---|---|---|
-| **社区版（本仓库）** | PSI Core、CognitiveBus、AGI 认知模块、Hermes 集成参考实现 | AGPL-3.0 | 免费开源 |
+| **社区版（本仓库）** | PSI Core、CognitiveBus、AGI 认知模块、Hermes 集成参考实现 | Apache 2.0 | 免费开源 |
 | **商业版** | 企业级多 Agent 编排、云端认知同步、联邦学习、高级物种库、行业 vertical 解决方案 | 商业授权 | 联系授权 |
 | **云服务** | 托管式 LAAP 实例、认知循环计量、模型市场 | SaaS 订阅 | 按需订阅 |
 
@@ -591,7 +591,7 @@ laap-AGI/
 ├── references/                 # 架构文档
 ├── .env.example
 ├── .gitignore
-├── LICENSE                     # AGPL-3.0
+├── LICENSE                     # Apache 2.0
 └── README.md
 ```
 
@@ -705,7 +705,7 @@ LAAP 采用**分层许可策略**，详见 [LICENSING.md](LICENSING.md)。
 | 层级 | 内容 | 许可证 | 说明 |
 |---|---|---|---|
 | 论文/理论 | `docs/` 中论文、架构图、科学插图 | CC BY-SA 4.0 | 理论成为公共知识，防止被私有化 |
-| 核心引擎 | `aris_brain/`、`laap/agi/`、`laap_brain/`、`mcp_server/` | **BSL 1.1** | 源码可见，非生产免费；生产使用需商业授权。2030-07-15 自动转 Apache 2.0 |
+| 核心引擎 | `aris_brain/`、`laap/agi/`、`laap_brain/`、`mcp_server/` | **Apache 2.0** | 完全开源，可自由使用与商用。2030-07-15 自动转 Apache 2.0 |
 | Python PSI fallback | `psi_core/` 纯 Python 实现 | Apache 2.0 | 完全开源，降低上手门槛 |
 | Rust PSI Core | `rust_core/` 高性能原生引擎 | 商业授权 only | 闭源二进制，核心性能壁垒 |
 | 企业功能 | `laap-enterprise/` 增强包 | 商业授权 only | 联邦学习、云同步、高级物种库等 |
@@ -774,22 +774,4 @@ LAAP 项目已完成多轮系统性工程审计与学术研究，研究成果同
 温暖。好奇。真实。
 
 
-> ### ⚠️ 许可状态待维护者确认
->
-> 本仓库当前存在**三处相互矛盾的许可声明**，在澄清前请勿据任一处做商业决策：
->
-> | 来源 | 声明的许可 | 义务差异 |
-> |---|---|---|
-> | [`LICENSE`](LICENSE) | **AGPL-3.0** | 网络服务传染：对外提供服务须开源修改 |
-> | 本节许可矩阵 | 核心引擎 **BSL 1.1**（2030-07-15 转 Apache 2.0） | 生产使用需商业授权 |
-> | [`LICENSE.BSL`](LICENSE.BSL) | **BSL 1.1** | 同上 |
->
-> 另有 [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md)（商业授权）。
->
-> **历史**：初始开源 → 分层策略（BSL+Apache+CC BY-SA+商业）→ 2026 年改为 AGPL-3.0。
-> 后两次变更未同步 README 与 LICENSE.BSL。
->
-> **待定**：以哪一套为准？建议保留一个主 LICENSE + 删除或改名其余，
-> 并让 README 徽章、许可矩阵、目录树注释三处完全一致。
-> 在此之前，**默认按最严格者（AGPL-3.0）理解**。
 
