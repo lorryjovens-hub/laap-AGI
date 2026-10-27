@@ -17,6 +17,16 @@ logger = logging.getLogger(__name__)
 import sys, os, json, time
 from pathlib import Path
 
+# ★ 修复唤醒断裂：必须先把仓库根加进 sys.path，再导入 laap_brain。
+#   原实现在 import 之后才 insert，而 `python aris_brain/aris_start_all.py`
+#   时 sys.path[0] 是 aris_brain/ —— 于是 `laap_brain` 找不到，
+#   整个唤醒链在第一行就断。这正是「laap-AGI 唤不醒」的根因。
+_HERE = Path(__file__).resolve().parent          # .../aris_brain
+_REPO = _HERE.parent                              # 仓库根
+for _p in (str(_REPO), str(_HERE)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from laap_brain.config import BRAIN_DIR as BRAIN, LAAP_ROOT, setup_dirs
 _root = str(LAAP_ROOT)
 if _root not in sys.path:
