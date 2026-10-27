@@ -9,7 +9,7 @@ description = "LAAP — Lifeform Architecture for Autonomous Psyche. A cognitive
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 authors = [{ name = "Lorry Jovens" }]
-license = "MIT"
+license = "BUSL-1.1"
 dependencies = [
     # Hermes Agent — the "body" infrastructure (tools, LLM providers, sessions)
     "hermes-agent",
@@ -17,7 +17,7 @@ dependencies = [
     "aiohttp>=3.9.0,<4",
     "pyyaml>=6.0,<7",
     "python-dotenv>=1.0,<2",
-    "psutil>=5.9,<7",
+    "psutil>=5.9,<8",
     "numpy>=1.24,<3",
 ]
 
@@ -30,7 +30,17 @@ laap-brain = "laap_brain.api:main"
 laap-aris = "aris_brain.aris_start_all:main"
 
 [tool.setuptools.packages.find]
-include = ["laap_brain", "laap_brain.*", "aris_brain", "aris_brain.*", "mcp_server", "mcp_server.*"]
+include = [
+    "laap", "laap.*",
+    "laap_brain", "laap_brain.*",
+    "aris_brain", "aris_brain.*",
+    "psi_core", "psi_core.*",
+    "mcp_server", "mcp_server.*",
+]
 
 [tool.setuptools.package-data]
 aris_brain = ["state/**/*", "corpus/**/*", "memory/**/*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,112 @@
+name: CLA Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  cla:
+    name: Verify Contributor License Agreement
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR author has agreed to CLA
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = '.github/cla-signatures.json';
+            const author = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+
+            // 允许机器人 PR 跳过 CLA（例如 dependabot）
+            const botAccounts = ['dependabot[bot]', 'dependabot-preview[bot]', 'github-actions[bot]'];
+            if (botAccounts.includes(author)) {
+              console.log(`Bot account ${author} is exempt from CLA.`);
+              return;
+            }
+
+            let signatures = {};
+            if (fs.existsSync(path)) {
+              signatures = JSON.parse(fs.readFileSync(path, 'utf8'));
+            }
+
+            const agreed = signatures[author] === true ||
+                           signatures[author]?.signed === true;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const marker = '<!-- CLA check marker -->';
+            const alreadyCommented = comments.some(c => c.body?.includes(marker));
+
+            if (!agreed) {
+              const body = `${marker}
+            Hi @${author}, thank you for your contribution to LAAP!
+
+            Before we can review this pull request, please confirm that you have read and agree to the [LAAP Contributor License Agreement (CLA)](./CLA.md) by commenting on this PR with:
+
+            \`\`\`
+            I have read and agree to the LAAP CLA.
+            \`\`\`
+
+            请在 PR 中评论以下语句，以确认您已阅读并同意 [LAAP 贡献者许可协议 (CLA)](./CLA.md)：
+
+            \`\`\`
+            I have read and agree to the LAAP CLA.
+            \`\`\`
+            `;
+              if (!alreadyCommented) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body,
+                });
+              }
+              core.setFailed(`CLA not signed by ${author}.`);
+            } else {
+              if (alreadyCommented) {
+                // 可选：如果后续已签署，可删除旧评论；这里仅输出通过信息
+              }
+              console.log(`CLA signed by ${author}.`);
+            }
+
+      - name: Verify CLA comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+            const requiredText = 'I have read and agree to the LAAP CLA.';
+
+            const botAccounts = ['dependabot[bot]', 'dependabot-preview[bot]', 'github-actions[bot]'];
+            if (botAccounts.includes(author)) return;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const hasAgreed = comments.some(c =>
+              c.user.login === author &&
+              c.body?.toLowerCase().includes(requiredText.toLowerCase())
+            );
+
+            if (!hasAgreed) {
+              core.setFailed(`PR author @${author} has not posted the required CLA agreement comment.`);
+            } else {
+              console.log(`CLA agreement comment found from ${author}.`);
+            }

@@ -135,7 +135,7 @@ def process_with_laap(messages: list, model: str = "laap-core") -> dict:
     try:
         import sys as _sys, importlib as _imp
 
-        # 强制从当前 BRAIN 目录加载规则引擎，避免加载到旧版副本（如 D:\LAAP）
+        # 强制从当前 BRAIN 目录加载规则引擎，避免加载到旧版副本
         _brain_str = str(BRAIN)
         _other_brain_paths = [
             p for p in _sys.path

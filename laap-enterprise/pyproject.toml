@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "laap-enterprise"
+version = "0.1.0"
+description = "LAAP Enterprise — 企业级私有化部署增强包（闭源商业授权）"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+authors = [{ name = "Lorry", email = "lorry@laap.ai" }]
+license = { text = "Proprietary — see LICENSE.md" }
+dependencies = [
+    "laap-core @ git+https://github.com/lorryjovens-hub/laap-AGI.git@main",
+    "pydantic>=2.0",
+    "cryptography>=42.0",
+]
+
+[project.optional-dependencies]
+console = ["fastapi>=0.110", "uvicorn>=0.29"]
+plugins = ["sqlalchemy>=2.0", "redis>=5.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "mypy>=1.8"]
+
+[tool.setuptools.packages.find]
+include = ["laap_enterprise", "laap_enterprise.*"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

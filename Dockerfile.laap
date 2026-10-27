@@ -1,0 +1,55 @@
+# ── LAAP Custom Dockerfile (含 laap-agi-full) ────────────────
+# 基于原版，补全缺失依赖 + 集成完整版 LAAP
+# 此文件已加入 .gitignore，git pull 不会覆盖
+# ═════════════════════════════════════════════════════════════
+
+# ── Stage 1: 基础 Python 环境 ─────────────────────────────
+FROM python:3.13-slim AS base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件
+COPY requirements.txt pyproject.toml ./
+
+# 复制 laap-agi-full（完整版）
+COPY laap-AGI-full/ ./laap-AGI-full/
+
+# 安装全部依赖（原版 + laap-agi-full）
+RUN pip install --no-cache-dir \
+    flask requests numpy aiohttp \
+    pyyaml python-dotenv psutil lark-oapi rich && \
+    pip install --no-cache-dir -e . 2>/dev/null || true && \
+    pip install --no-cache-dir -e ./laap-AGI-full 2>/dev/null || true
+
+# ── Stage 2: 生产镜像 ─────────────────────────────────────
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY --from=base /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=base /usr/local/bin /usr/local/bin
+
+RUN mkdir -p /app/aris_brain/state /app/aris_brain/memory && \
+    useradd -m -u 1001 aris && \
+    chown -R aris:aris /app
+
+COPY --chown=aris:aris . .
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:11546/health')" || exit 1
+
+USER aris
+
+ENV LAAP_PORT=11546 \
+    LAAP_API_BASE=http://localhost:11546 \
+    LAAP_STATE_DIR=/app/aris_brain/state \
+    PYTHONPATH="/app:${PYTHONPATH}" \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 11546
+
+CMD ["python", "aris_brain/laap_brain_api.py", "--port", "11546"]

@@ -1,8 +1,10 @@
 """Test LAAP MCP server tools without Hermes."""
 import sys
+from pathlib import Path
 
-sys.path.insert(0, r"D:\laap-AGI\mcp_server")
-sys.path.insert(0, r"D:\laap-AGI\aris_brain")
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "mcp_server"))
+sys.path.insert(0, str(ROOT / "aris_brain"))
 
 from laap_mcp_server import (
     laap_cognitive_state,
